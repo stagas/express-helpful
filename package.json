@@ -1,0 +1,24 @@
+{
+  "name": "helpful",
+  "description": "Helpful functions for Express",
+  "tags": ["express"],
+  "version": "0.0.1",
+  "author": "George Stagas <gstagas@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/stagas/express-helpful.git"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "./lib/helpful.js",
+  "dependencies": {
+    "express": ">=1.0.3",
+    "connect": ">=0.5.5",
+    "chaos": ">=0.1.6-pre",
+    "jade": ">=0.6.0",
+    "colors": ">=0.3.0",
+    "useragent": ">=0.1.1",
+    "creationix": ">=0.0.7"
+  }
+}
