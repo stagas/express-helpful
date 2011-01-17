@@ -3,5 +3,8 @@
     | Welcome back, 
     span= username
   span= JSON.stringify(roles)
+  br
+  - if (roles.has('premium'))
+    span You are a premium member!
 - else
   h1 Hello, stranger
