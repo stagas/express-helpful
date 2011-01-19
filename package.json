@@ -2,7 +2,7 @@
   "name": "helpful",
   "description": "Helpful functions for Express",
   "tags": ["express"],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "George Stagas <gstagas@gmail.com>",
   "repository": {
     "type": "git",
