@@ -1,8 +1,10 @@
 {
   "name": "helpful",
   "description": "Helpful functions for Express",
-  "tags": ["express"],
-  "version": "0.0.3",
+  "tags": [
+    "express"
+  ],
+  "version": "0.0.4",
   "author": "George Stagas <gstagas@gmail.com>",
   "repository": {
     "type": "git",
@@ -11,7 +13,7 @@
   "directories": {
     "lib": "./lib"
   },
-  "main": "./lib/helpful.js",
+  "main": "./lib/helpful",
   "dependencies": {
     "express": ">=1.0.3",
     "connect": ">=0.5.5",
@@ -20,5 +22,19 @@
     "colors": ">=0.3.0",
     "useragent": ">=0.1.1",
     "creationix": ">=0.0.7"
-  }
+  },
+  "engines": {
+    "node": "*"
+  },
+  "modules": {
+    "allow.js": "lib/allow.js",
+    "articles.js": "lib/articles.js",
+    "discussion.js": "lib/discussion.js",
+    "boil.js": "lib/boil.js",
+    "helpful.js": "lib/helpful.js",
+    "login.js": "lib/login.js"
+  },
+  "files": [
+    ""
+  ]
 }
