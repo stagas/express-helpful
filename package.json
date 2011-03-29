@@ -4,16 +4,13 @@
   "tags": [
     "express"
   ],
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "George Stagas <gstagas@gmail.com>",
   "repository": {
     "type": "git",
     "url": "http://github.com/stagas/express-helpful.git"
   },
-  "directories": {
-    "lib": "./lib"
-  },
-  "main": "./lib/helpful",
+  "main": "./helpful.js",
   "dependencies": {
     "express": ">=1.0.3",
     "connect": ">=0.5.5",
@@ -25,16 +22,5 @@
   },
   "engines": {
     "node": "*"
-  },
-  "modules": {
-    "allow.js": "lib/allow.js",
-    "articles.js": "lib/articles.js",
-    "discussion.js": "lib/discussion.js",
-    "boil.js": "lib/boil.js",
-    "helpful.js": "lib/helpful.js",
-    "login.js": "lib/login.js"
-  },
-  "files": [
-    ""
-  ]
+  }
 }

@@ -1,7 +1,7 @@
 var path = require('path')
   , express = require('express')
   , userAgent = require('useragent')
-  , MemoryStore = require('connect/middleware/session/memory')
+  , MemoryStore = require('connect/lib/middleware/session/memory')
   , staticFile = require('creationix/static')
 
 module.exports = function(app, options) {
@@ -10,7 +10,7 @@ module.exports = function(app, options) {
   options.host = options.host || 'localhost'
   options['view engine'] = options['view engine'] || 'jade'
   options['views'] = path.normalize(options['views']) || __dirname + '/views'
-  options['partials'] = path.normalize(options['partials']) || __dirname + '/views'
+  options['partials'] = options['partials'] && path.normalize(options['partials']) || __dirname + '/views'
   options['public'] = path.normalize(options['public']) || __dirname + '/public'
   options['secret'] = options['secret'] || 'aSecretString'
   options['sessionStore'] = options['sessionStore'] || new MemoryStore()
@@ -52,8 +52,8 @@ module.exports = function(app, options) {
       + ':referrer'.grey
     })
   , express.methodOverride()
-  , express.cookieDecoder()
-  , express.bodyDecoder()
+  , express.cookieParser()
+  , express.bodyParser()
   , express.session(options['sessionStore'])
   , function(req, res, next) {
       req.locals = res.locals = res.locals || req.locals || {}
@@ -74,7 +74,6 @@ module.exports = function(app, options) {
   ;[
     app.router
   , staticFile('/', options['public'])
-  , express.gzip()
   ].forEach(function(middleware) {
     app.use(middleware)
   })

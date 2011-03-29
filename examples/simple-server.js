@@ -42,6 +42,7 @@ var config = boil(app, {
     cache()
   , login({
       css: '/css/style.css'
+    , dbName: __dirname + '/users_db'
     , after: function(req, res, next) {
         req.expireAll()
         next()

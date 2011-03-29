@@ -129,7 +129,7 @@ var stripExt = exports.stripExt = function(s) {
 var render = exports.render = function(view, context, locals) {
   var req = context.locals.req
     , res = context.locals.res
-    , viewHash = hash(req.method + req.url + req.headers.ip + req.sessionID + locals.layout + view)
+    , viewHash = hash(req.method + req.url + req.header('ip') + req.sessionID + locals.layout + view)
  
   return cacheView[viewHash] || html[view].call(context, locals)
 }
@@ -173,15 +173,14 @@ var expires = exports.expires = function(cacheExpire) {
 }
 
 var isCached = function(req, res) {
-  req.viewHash = hash(req.method + req.url + req.headers.ip + req.sessionID + res.locals.layout + res.locals.view)
-  req.urlHash = hash(req.url + req.headers.ip + req.sessionID)
+  req.viewHash = hash(req.method + req.url + req.header('ip') + req.sessionID + res.locals.layout + res.locals.view)
+  req.urlHash = hash(req.url + req.header('ip') + req.sessionID)
 
-  res.headers["Date"] = new Date().toUTCString()
-  res.headers["Last-Modified"] = _cache[req.viewHash] || res.headers["Date"]
+  res.header("Date", new Date().toUTCString())
+  res.header("Last-Modified", _cache[req.viewHash] || res.header("Date"))
 
-  if (res.headers["Last-Modified"] === req.headers["if-modified-since"]) {
-    res.writeHead(304, res.headers)
-    res.end()
+  if (res.header("Last-Modified") === req.header("if-modified-since")) {
+    res.send(304)
     return true
   }
 
@@ -211,20 +210,20 @@ var isCached = function(req, res) {
 
 var saveCache = function(req, res, out) {
   if (req.cacheExpire) {
-    _cache[req.viewHash] = res.headers["Last-Modified"]
+    _cache[req.viewHash] = res.header("Last-Modified")
     cacheView[req.viewHash] = out
-    if (typeof cacheList[req.urlHash] !== 'object') cacheList[req.urlHash] = { u: hash(req.headers.ip + req.sessionID) }
+    if (typeof cacheList[req.urlHash] !== 'object') cacheList[req.urlHash] = { u: hash(req.header('ip') + req.sessionID) }
     cacheList[req.urlHash][req.viewHash] = true
   }
 }
 
 var cache = exports.cache = function() {
   return function(req, res, next) {
-    var u = hash(req.headers.ip + req.sessionID)
+    var u = hash(req.header('ip') + req.sessionID)
   
     req.expire = function(urlToExpire) {
       if (!urlToExpire) urlToExpire = req.url
-      var urlHash = hash(urlToExpire + req.headers.ip + req.sessionID)
+      var urlHash = hash(urlToExpire + req.header('ip') + req.sessionID)
       if (cacheList[urlHash] && cacheList[urlHash].u != u) return
       for (var i in cacheList[urlHash]) {
         delete _cache[i]
@@ -302,9 +301,8 @@ var cache = exports.cache = function() {
       var out = render(locals.layout, req.context, locals)
       
       saveCache(req, res, out)
-      
-      res.writeHead(200, res.headers)
-      res.end(out)
+     
+      res.send(out)
     }
     
     next()
