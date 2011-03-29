@@ -116,7 +116,7 @@ var user = function(req) {
 }
 
 var redirect = function(res) {
-  res.redirect(res.locals.redirect_url)
+  res.redirect(res._locals.redirect_url)
 }
 
 var Login = {
@@ -205,19 +205,19 @@ var login = module.exports = function(opts) {
   db = require('chaos')(options.dbName)
   
   return function(req, res, next) {
-    req.locals = res.locals = res.locals || req.locals || {}
-    res.locals.req = req
-    res.locals.res = res
-    res.locals.loginCss = options.css || '/css/style.css'
-    res.locals.redirect_url = req.url
-    res.locals.loggedIn = req.session && req.session.loggedIn || false
-    res.locals.user = req.session && req.session.loggedIn && req.session.user || {
+    res.local('req', req)
+    res.local('res', res)
+    res.local('loginCss', options.css || '/css/style.css')
+    res.local('redirect_url', req.url)
+    res.local('loggedIn', req.session && req.session.loggedIn || false)
+    res.local('user', req.session && req.session.loggedIn && req.session.user || {
       username: 'guest'
     , roles: [ 'guest' ]
-    }
-    res.locals.admin = res.locals.user.roles.has('admin')
-    res.locals.username = res.locals.user.username
-    req.roles = res.roles = res.locals.roles = res.locals.user.roles
+    })
+    res.local('admin', res._locals.user.roles.has('admin'))
+    res.local('username', res._locals.user.username)
+    res.local('roles', res._locals.user.roles)
+    req.roles = res.roles = res._locals.roles
     req.users = res.users = store
     req.user = res.user = user(req)
     
@@ -227,13 +227,12 @@ var login = module.exports = function(opts) {
       ].forEach(function(handler) {
         ;['get', 'post'].forEach(function(method) {
           app[method](options.path + '/' + handler, function(req, res, next) {
-            req.locals = res.locals = res.locals || req.locals || {}
-            res.locals.title = handler.substr(0,1).toUpperCase() + handler.substr(1).toLowerCase()           
-            res.locals.redirect_url = req.body && req.body.redirect_url || req.query && req.query.redirect_url || '/'
+            res.local('title', handler.substr(0,1).toUpperCase() + handler.substr(1).toLowerCase())
+            res.local('redirect_url', req.body && req.body.redirect_url || req.query && req.query.redirect_url || '/')
             req.user = res.user = user(req)
             Login[method][handler](req, res, function() {
-              res.locals.layout = 'login/layout'
-              res.render('login/' + handler, res.locals)
+              res.local('layout', 'login/layout.jade')
+              res.render('login/' + handler + '.jade')
             })
           })
         })

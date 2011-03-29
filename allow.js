@@ -19,12 +19,12 @@ var allow = module.exports = function(allowed, cb) {
     if (!req.session.loggedIn) {
       if (haveToLogin)
         return res.redirect('/login?redirect_url=' + encodeURIComponent(req.url))
-      else return cb && cb(req, res, next) || next()
+      else return (cb && cb(req, res, next) || next())
     } else {
       for (var i = allowed.length; i--;) {
         if (req.roles.has(allowed[i])) return next()
       }
-      cb && cb(req, res, next) || res.redirect(res.headers.referer || '/')
+      cb && cb(req, res, next)
     }
   }
 }

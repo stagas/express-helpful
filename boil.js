@@ -44,7 +44,7 @@ module.exports = function(app, options) {
       format:
         options.host.cyan
       + ' [:date] '.grey
-      + ':req[remoteAddress] '.magenta
+      + ':req[ip] '.magenta
       + ':method '.yellow
       + ':status '.green
       + ('http://' + options.host + ':url ').white
@@ -55,12 +55,6 @@ module.exports = function(app, options) {
   , express.cookieParser()
   , express.bodyParser()
   , express.session(options['sessionStore'])
-  , function(req, res, next) {
-      req.locals = res.locals = res.locals || req.locals || {}
-      res.locals.req = req
-      res.locals.res = res
-      next()
-    }
   ].forEach(function(middleware) {
     app.use(middleware)
   })

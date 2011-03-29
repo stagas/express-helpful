@@ -109,7 +109,7 @@ var start = exports.start = function(server, port, host, cb, interval, max) {
       log(1)('Address in use, retrying...')
 
       setTimeout(function () {
-        server.close()
+        try { server.close() } catch(e) {}
         server.listen(port, host, started(cb))
       }, interval)
     }
@@ -127,10 +127,12 @@ var stripExt = exports.stripExt = function(s) {
 }
 
 var render = exports.render = function(view, context, locals) {
-  var req = context.locals.req
-    , res = context.locals.res
-    , viewHash = hash(req.method + req.url + req.header('ip') + req.sessionID + locals.layout + view)
- 
+  view = view.replace('.jade', '')
+
+  var req = context._locals.req
+    , res = context._locals.res
+    , viewHash = hash(req.method + req.url + req.headers.ip + req.sessionID + locals.layout + view)
+
   return cacheView[viewHash] || html[view].call(context, locals)
 }
 
@@ -173,13 +175,13 @@ var expires = exports.expires = function(cacheExpire) {
 }
 
 var isCached = function(req, res) {
-  req.viewHash = hash(req.method + req.url + req.header('ip') + req.sessionID + res.locals.layout + res.locals.view)
-  req.urlHash = hash(req.url + req.header('ip') + req.sessionID)
+  req.viewHash = hash(req.method + req.url + req.headers.ip + req.sessionID + res._locals.layout + res._locals.view)
+  req.urlHash = hash(req.url + req.headers.ip + req.sessionID)
 
-  res.header("Date", new Date().toUTCString())
-  res.header("Last-Modified", _cache[req.viewHash] || res.header("Date"))
+  res._headers["Date"] = new Date().toUTCString()
+  res._headers["Last-Modified"] = _cache[req.viewHash] || res._headers["Date"]
 
-  if (res.header("Last-Modified") === req.header("if-modified-since")) {
+  if (res._headers["Last-Modified"] === req.headers["if-modified-since"]) {
     res.send(304)
     return true
   }
@@ -210,20 +212,20 @@ var isCached = function(req, res) {
 
 var saveCache = function(req, res, out) {
   if (req.cacheExpire) {
-    _cache[req.viewHash] = res.header("Last-Modified")
+    _cache[req.viewHash] = res._headers["Last-Modified"]
     cacheView[req.viewHash] = out
-    if (typeof cacheList[req.urlHash] !== 'object') cacheList[req.urlHash] = { u: hash(req.header('ip') + req.sessionID) }
+    if (typeof cacheList[req.urlHash] !== 'object') cacheList[req.urlHash] = { u: hash(req.headers.ip + req.sessionID) }
     cacheList[req.urlHash][req.viewHash] = true
   }
 }
 
 var cache = exports.cache = function() {
   return function(req, res, next) {
-    var u = hash(req.header('ip') + req.sessionID)
+    var u = hash(req.headers.ip + req.sessionID)
   
     req.expire = function(urlToExpire) {
       if (!urlToExpire) urlToExpire = req.url
-      var urlHash = hash(urlToExpire + req.header('ip') + req.sessionID)
+      var urlHash = hash(urlToExpire + req.headers.ip + req.sessionID)
       if (cacheList[urlHash] && cacheList[urlHash].u != u) return
       for (var i in cacheList[urlHash]) {
         delete _cache[i]
@@ -249,55 +251,61 @@ var cache = exports.cache = function() {
     }
     
     res.render = function(view, locals, renderOnly) {
-      res.locals.layout = locals.layout || 'layout'
-      res.locals.view = locals.view = view
+      locals = locals || {}
+      res.local('layout', locals.layout || 'layout')
+      res.local('view', view)
+      locals.view = view
       
       if (isCached(req, res)) return
 
       for (var i in locals) {
         // shadowing
-        res.locals[i] = locals[i]
+        res.local(i, locals[i])
       }
       
-      for (var i in res.locals) {
-        if (!(i in locals)) locals[i] = res.locals[i]
+      for (var i in res._locals) {
+        if (!(i in locals)) locals[i] = res._locals[i]
       }
  
-      res.locals.partial = locals.partial = function(view, locals) {
+      res.local('partial', function(view, locals) {
         locals = locals || {}
         
         for (var i in locals) {
           // shadowing
-          res.locals[i] = locals[i]
+          res.local(i, locals[i])
         }
         
-        for (var i in res.locals) {
-          if (!(i in locals)) locals[i] = res.locals[i]
+        for (var i in res._locals) {
+          if (!(i in locals)) locals[i] = res._locals[i]
         }
         
         locals.layout = ''
-        req.context.locals = locals
+        req.context._locals = locals
         return render(view, req.context, locals)
-      }
+      })
+      
+      locals.partial = res._locals.partial
 
-      res.locals.render = locals.render = function(layout, view, locals) {
+      res.local('render', function(layout, view, locals) {
         locals = locals || {}
         
         for (var i in locals) {
           // shadowing
-          res.locals[i] = locals[i]
+          res.local(i, locals[i])
         }
         
-        for (var i in res.locals) {
-          if (!(i in locals)) locals[i] = res.locals[i]
+        for (var i in res._locals) {
+          if (!(i in locals)) locals[i] = res._locals[i]
         }
         
         locals.view = view
-        req.context.locals = locals        
+        req.context._locals = locals        
         return render(layout, req.context, locals)
-      }
+      })
       
-      req.context.locals = locals
+      locals.render = res._locals.render
+      
+      req.context._locals = locals
       var out = render(locals.layout, req.context, locals)
       
       saveCache(req, res, out)
