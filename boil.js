@@ -9,7 +9,7 @@ module.exports = function(app, options) {
   
   options.host = options.host || 'localhost'
   options['view engine'] = options['view engine'] || 'jade'
-  options['views'] = path.normalize(options['views']) || __dirname + '/views'
+  options['views'] = options['views'] && path.normalize(options['views']) || __dirname + '/views'
   options['partials'] = options['partials'] && path.normalize(options['partials']) || __dirname + '/views'
   options['public'] = path.normalize(options['public']) || __dirname + '/public'
   options['secret'] = options['secret'] || 'aSecretString'
